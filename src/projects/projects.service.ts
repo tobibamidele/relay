@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import * as crypto from 'crypto';
 import { DRIZZLE } from "../database/database.provider.js";
 import * as schema from '../database/schema.js';
+import { eq } from "drizzle-orm";
 
 @Injectable()
 export class ProjectsService {
@@ -24,7 +25,9 @@ export class ProjectsService {
     }
   }
 
-  async findAll() {
-    return await this.db.query.projects.findMany();
+  async findByID(id: string) {
+    const [result] = await this.db.select().from(schema.projects).where(eq(schema.projects.id, id));
+    const { apiKey, ...safeResult } = result;
+    return safeResult;
   }
 }

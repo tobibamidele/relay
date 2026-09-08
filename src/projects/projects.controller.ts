@@ -1,14 +1,18 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project-dto.js";
 import { ProjectsService } from "./projects.service.js";
+import { AuthGuard } from "../auth/guards/authentication.guard.js";
+import type { AuthenticatedRequest } from "../auth/auth.types.js";
 
 @Controller("projects")
 export class ProjectController {
   // inject the service through the constructor
   constructor(private readonly projectsService: ProjectsService) {}
+
+  @UseGuards(AuthGuard)
   @Get()
-  async listAll() {
-    return await this.projectsService.findAll();
+  async getProject(@Req() request: AuthenticatedRequest) {
+    return await this.projectsService.findByID(request.project.id);
   }
 
   @Post()
