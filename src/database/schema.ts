@@ -1,4 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
+import { create } from "domain";
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
@@ -44,7 +45,7 @@ export const events = sqliteTable('events', {
   id: text('id').primaryKey().$defaultFn(() => "evt_" + createId()),
   projectId: text('project_id').notNull().references(() => projects.id, { onDelete: "cascade" }),
   type: text('type').notNull(),
-  payload: text('payload', { mode: "json" }).notNull(),
+  data: text('data', { mode: "json" }).notNull(),
   idempotencyKey: text('idempotency_key'),
   createdAt: text('created_at')
     .default(sql`(CURRENT_TIMESTAMP)`)
