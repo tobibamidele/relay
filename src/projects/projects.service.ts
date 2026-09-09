@@ -3,15 +3,17 @@ import * as crypto from 'crypto';
 import { DRIZZLE } from "../database/database.provider.js";
 import * as schema from '../database/schema.js';
 import { eq } from "drizzle-orm";
+import { APIKeyService } from "../api-keys/api-key.service.js";
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @Inject(DRIZZLE) private db: ReturnType<typeof import('drizzle-orm/better-sqlite3').drizzle<typeof schema>>,
+    private readonly apiKeyService: APIKeyService,
   ) {}
 
   async createProject(name: string): Promise<{ id: string, name: string, createdAt: string, apiKey: string }> {
-    const apiKey = "rk_live_" + crypto.randomBytes(12).toString("hex");
+    const apiKey = this.apiKeyService.generateAPIKey()
     const hashedKey = crypto.createHash("sha256").update(apiKey).digest("hex");
 
     const [createdProject] = await this.db.insert(schema.projects).values({ name }).returning();

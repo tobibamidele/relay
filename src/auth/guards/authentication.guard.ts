@@ -18,8 +18,7 @@ export class AuthGuard implements CanActivate {
         }
 
         try {
-            const project = await this.authService.findProjectByAPIKey(apiKey);
-
+            const project = await this.authService.findActiveProjectByAPIKey(apiKey);
             if (!project) {
                 throw new UnauthorizedException('Invalid API Key');
             }
@@ -35,8 +34,6 @@ export class AuthGuard implements CanActivate {
 
             console.error('Auth Guard Error: ', error)
             throw new UnauthorizedException('Authentication failed');
-        } finally {
-            return true;
         }
     }
 }
