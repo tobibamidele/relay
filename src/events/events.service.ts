@@ -1,13 +1,16 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { DRIZZLE } from "../database/database.provider.js";
 import * as schema from "../database/schema.js";
-import { and, eq, lt, or } from "drizzle-orm";
+import { and, eq, lt, or, sql } from "drizzle-orm";
 import { GetEventsDto } from "./dto/get-events-dto.js";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 
 @Injectable()
 export class EventsService {
   constructor(
     @Inject(DRIZZLE) private db: ReturnType<typeof import('drizzle-orm/better-sqlite3').drizzle<typeof schema>>,
+    @InjectQueue('event-queue') private readonly eventQueue: Queue,
   ) {}
 
   async getEventByID(id: string, projectId: string) {
@@ -91,6 +94,21 @@ export class EventsService {
         data: schema.events.data,
         createdAt: schema.events.createdAt,
       });
+
+    const endpointUrls = await this.db.select({url: schema.endpoints.url})
+      .from(schema.endpoints)
+      .where(
+        sql`EXISTS (
+          SELECT 1 
+          FROM json_each(${schema.endpoints.events}) 
+          WHERE json_each.value IN (${result.type})
+        )`
+      )
+
+    await this.eventQueue.add('send-event', {
+      to: endpointUrls.map((row) => row.url),
+      data: result.data,
+    });
 
     return result
   }

@@ -4,11 +4,14 @@ import { EventsService } from "./events.service.js";
 import type { AuthenticatedRequest } from "../auth/auth.types.js";
 import { CreateEventDto } from "./dto/create-event-dto.js";
 import { GetEventsDto } from "./dto/get-events-dto.js";
+import { InjectQueue } from "@nestjs/bullmq";
 
 @UseGuards(AuthGuard)
 @Controller("events")
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+  ) {}
 
   @Get()
   async listEvents(@Req() request: AuthenticatedRequest, @Query() query: GetEventsDto) {
@@ -34,6 +37,6 @@ export class EventsController {
       body.type,
       body.data,
       idempotencyKey,
-    )
+    );
   }
 }
