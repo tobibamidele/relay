@@ -1,0 +1,1 @@
+ALTER TABLE `endpoints` ADD `secret` text NOT NULL;

@@ -1,0 +1,1 @@
+ALTER TABLE `endpoints` ADD `deleted_at` text;

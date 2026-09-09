@@ -29,10 +29,23 @@ export const endpoints = sqliteTable('endpoints', {
   projectId: text('project_id').notNull().references(() => projects.id, { onDelete: "cascade" }),
   enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
   url: text('url').notNull(),
+  secret: text('secret').notNull(),
   events: text('events', { mode: 'json' })
     .$type<string[]>()
     .notNull()
     .default(sql`'[]'`),
+  createdAt: text('created_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  deletedAt: text('deleted_at')
+})
+
+export const events = sqliteTable('events', {
+  id: text('id').primaryKey().$defaultFn(() => "evt_" + createId()),
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: "cascade" }),
+  type: text('type').notNull(),
+  payload: text('payload', { mode: "json" }).notNull(),
+  idempotencyKey: text('idempotency_key'),
   createdAt: text('created_at')
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
