@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { DRIZZLE } from "../database/database.provider.js";
 import * as schema from "../database/schema.js";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 @Injectable()
 export class EndpointsService {
@@ -19,7 +19,7 @@ export class EndpointsService {
   }
 
   async createEndpoint(projectId: string, url: string, events: string[], enabled: boolean) {
-    const result = await this.db
+    const [result] = await this.db
       .insert(schema.endpoints)
       .values({
         projectId,
@@ -28,6 +28,17 @@ export class EndpointsService {
         enabled,
       }).returning();
 
-    return result[0].enabled;
+    return result; 
+  }
+
+  async deleteEndpointByID(id: string, projectId: string) {
+    return await this.db
+      .delete(schema.endpoints)
+      .where(
+        and(
+          eq(schema.endpoints.id, id),
+          eq(schema.endpoints.projectId, projectId)
+        )
+      );
   }
 }

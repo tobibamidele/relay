@@ -10,13 +10,23 @@ export class AuthService {
     @Inject(DRIZZLE) private db: ReturnType<typeof import('drizzle-orm/better-sqlite3').drizzle<typeof schema>>,
   ) {}
 
+  // TODO: Update last used at
   async findProjectByAPIKey(key: string): Promise<{ name: string, id: string } | null> {
     const hashedKey = createHash('sha256').update(key).digest('hex');
-    const result = await this.db.select()
-      .from(schema.projects)
-      .where(eq(schema.projects.apiKey, hashedKey));
+    const storedKeyRecord = await this.db.select()
+      .from(schema.apiKeys)
+      .where(eq(schema.apiKeys.keyHash, hashedKey));
 
-    const project = result[0];
+    const storedKey = storedKeyRecord[0];
+    if (!storedKey) {
+      return null;
+    }
+
+    const projectRecord = await this.db.select()
+      .from(schema.projects)
+      .where(eq(schema.projects.id, storedKey.projectId));
+
+    const project = projectRecord[0];
     if (!project) {
       return null;
     }
@@ -24,7 +34,7 @@ export class AuthService {
     return {
       name: project.name,
       id: project.id,
-    };
+    }
   }
 }
 

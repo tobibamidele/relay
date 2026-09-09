@@ -29,6 +29,20 @@
       "when": 1788897010279,
       "tag": "0003_slimy_mattie_franklin",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788946760747,
+      "tag": "0004_tranquil_solo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788949278900,
+      "tag": "0005_charming_namorita",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,6 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const projects = sqliteTable('projects', {
     id: text('id').primaryKey().$defaultFn(() => "proj_" + createId()),
     name: text('name').notNull(),
-    apiKey: text('api_key').notNull().unique(),
     createdAt: text('created_at')
       .default(sql`(CURRENT_TIMESTAMP)`)
       .notNull(),
@@ -14,8 +13,19 @@ export const projects = sqliteTable('projects', {
     .notNull(),
 })
 
+export const apiKeys = sqliteTable('api_keys', {
+  id: text('id').primaryKey().$defaultFn(() => "api_key_" + createId()),
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: "cascade"} ),
+  name: text('name').notNull(),
+  keyHash: text('key_hash').notNull(),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+  lastUsedAt: text('last_used_at')
+    .default(sql`(CURRENT_TIMESTAMP)`),
+  revokedAt: text('revoked_at'),
+})
+
 export const endpoints = sqliteTable('endpoints', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: text('id').primaryKey().$defaultFn(() => "endp_" + createId()),
   projectId: text('project_id').notNull().references(() => projects.id, { onDelete: "cascade" }),
   enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
   url: text('url').notNull(),
@@ -23,7 +33,7 @@ export const endpoints = sqliteTable('endpoints', {
     .$type<string[]>()
     .notNull()
     .default(sql`'[]'`),
-  created_at: text('created_at')
+  createdAt: text('created_at')
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
 })
