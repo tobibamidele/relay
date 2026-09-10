@@ -1,16 +1,17 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { DRIZZLE } from "../database/database.provider.js";
 import * as schema from "../database/schema.js";
-import { and, eq, lt, or, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import { GetEventsDto } from "./dto/get-events-dto.js";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
+import { SendDeliveryDto } from "../deliveries/dto/send-delivery-dto.js";
 
 @Injectable()
 export class EventsService {
   constructor(
     @Inject(DRIZZLE) private db: ReturnType<typeof import('drizzle-orm/better-sqlite3').drizzle<typeof schema>>,
-    @InjectQueue('event-queue') private readonly eventQueue: Queue,
+    @InjectQueue('delivery-queue') private readonly deliveryQueue: Queue,
   ) {}
 
   async getEventByID(id: string, projectId: string) {
@@ -95,20 +96,43 @@ export class EventsService {
         createdAt: schema.events.createdAt,
       });
 
-    const endpointUrls = await this.db.select({url: schema.endpoints.url})
+
+    // Query active endpoints matching projectId and subscribe event type
+    const targetEndpoints = await this.db
+      .select({
+        id: schema.endpoints.id,
+        url: schema.endpoints.url,
+        secret: schema.endpoints.secret,
+      })
       .from(schema.endpoints)
       .where(
-        sql`EXISTS (
-          SELECT 1 
-          FROM json_each(${schema.endpoints.events}) 
-          WHERE json_each.value IN (${result.type})
-        )`
-      )
+        and(
+          eq(schema.endpoints.projectId, projectId),
+          eq(schema.endpoints.enabled, true),
+          isNull(schema.endpoints.deletedAt),
+          sql`EXISTS(
+            SELECT 1
+            FROM json_each(${schema.endpoints.events})
+            WHERE json_each.value = ${result.type}
+          )`
+        )
+      );
 
-    await this.eventQueue.add('send-event', {
-      to: endpointUrls.map((row) => row.url),
-      data: result.data,
-    });
+    if (targetEndpoints.length === 0) {
+      return result;
+    }
+
+    const sendEventDto: SendDeliveryDto = {
+      projectId: projectId,
+      eventId: result.id,
+      type: result.type,
+      endpointIds: targetEndpoints.map((ep) => ep.id),
+      endpoints: targetEndpoints.map((ep) => ({ id: ep.id, url: ep.url, secret: ep.secret })),
+      data: result.data as Record<string, any>,
+    }
+
+
+    await this.deliveryQueue.add('send-event', sendEventDto);
 
     return result
   }

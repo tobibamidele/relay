@@ -1,0 +1,1 @@
+ALTER TABLE `deliveries` RENAME COLUMN "lastError" TO "last_error";

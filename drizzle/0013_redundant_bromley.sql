@@ -1,0 +1,1 @@
+ALTER TABLE `deliveries` ADD `project_id` text NOT NULL REFERENCES projects(id);

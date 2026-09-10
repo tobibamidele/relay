@@ -51,3 +51,27 @@ export const events = sqliteTable('events', {
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
 })
+
+export const deliveryStatusEnum = ['pending', 'processing', 'retrying', 'failed', 'delivered', 'dead_letter'] as const;
+
+export const deliveries = sqliteTable('deliveries', {
+  id: text('id').primaryKey().$defaultFn(() => "dlv_" + createId()),
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: "cascade"} ),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: "no action" }),
+  endpointId: text('endpoint_id').notNull().references(() => endpoints.id, { onDelete: "no action"}),
+  status: text('status', { enum: deliveryStatusEnum }).default('pending').notNull(),
+  attemptCount: integer('attempt_count').notNull(),
+  lastAttemptAt: text('last_attempt_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  nextAttemptAt: text('next_attempt_at'),
+  completedAt: text('completed_at'),
+  lastStatusCode: integer('last_status_code'),
+  lastError: text('last_error'),
+  createdAt: text('created_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+})
+
+// Infer TS Type for the field
+export type DeliveryStatus = (typeof deliveryStatusEnum)[number];

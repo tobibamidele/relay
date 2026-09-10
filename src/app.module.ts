@@ -7,6 +7,7 @@ import { EndpointsModule } from './endpoints/endpoints.module.js';
 import { APIKeysModule } from './api-keys/api-key.module.js';
 import { EventsModule } from './events/events.module.js';
 import { BullModule } from '@nestjs/bullmq';
+import { DeliveryModule } from './deliveries/deliveries.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BullModule } from '@nestjs/bullmq';
     EndpointsModule,
     APIKeysModule,
     EventsModule,
+    DeliveryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
