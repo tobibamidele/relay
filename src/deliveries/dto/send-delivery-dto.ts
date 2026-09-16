@@ -1,4 +1,4 @@
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsObject, IsString } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
 
 
 export type SendDeliveryEndpointType = {
@@ -20,12 +20,11 @@ export class SendDeliveryDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
-  endpointIds: string[];
-
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsString({ each: true })
   endpoints: SendDeliveryEndpointType[];
+
+  @IsOptional()
+  @IsString()
+  idempotencyKey: string | null;
 
   @IsObject()
   @IsNotEmpty()

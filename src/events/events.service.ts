@@ -93,6 +93,7 @@ export class EventsService {
         id: schema.events.id,
         type: schema.events.type,
         data: schema.events.data,
+        idempotencyKey: schema.events.idempotencyKey,
         createdAt: schema.events.createdAt,
       });
 
@@ -126,8 +127,8 @@ export class EventsService {
       projectId: projectId,
       eventId: result.id,
       type: result.type,
-      endpointIds: targetEndpoints.map((ep) => ep.id),
       endpoints: targetEndpoints.map((ep) => ({ id: ep.id, url: ep.url, secret: ep.secret })),
+      idempotencyKey: result.idempotencyKey,
       data: result.data as Record<string, any>,
     }
 

@@ -12,12 +12,8 @@ export class DeliveryProcessor extends WorkerHost {
   async process(job: Job<SendDeliveryDto, any, string>): Promise<any> {
     switch(job.name) {
       case 'send-event': {
-        const { eventId, type, endpointIds, endpoints, data } = job.data;
-        console.log(`[WORKER] eventId => ${eventId}, endpointId => ${endpointIds}, data => ${JSON.stringify(data)}`)
-        this.deliveryService.processDeliveries(job.data);
-        
-
-        return { delivered: true }
+const delivered = await this.deliveryService.processDeliveries(job.data);
+        return { delivered }
       }
 
       default:
